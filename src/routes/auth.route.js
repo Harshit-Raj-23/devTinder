@@ -1,0 +1,61 @@
+const express = require("express");
+const { validateSignupData } = require("../utils/validation.js");
+const bcrypt = require("bcrypt");
+const User = require("../models/user.model.js");
+const authRouter = express.Router();
+
+authRouter.post("/signup", async (req, res) => {
+  try {
+    // Validation of data
+    validateSignupData(req);
+
+    const { firstName, lastName, email, password } = req.body;
+
+    // Encryption of Password
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    // Creating a new instance of User Model
+    const user = new User({
+      firstName,
+      lastName,
+      email,
+      password: passwordHash,
+    });
+
+    await user.save();
+    res.send("User saved successfully!!!");
+  } catch (error) {
+    res.status(400).send("ERROR : " + error.message);
+  }
+});
+
+authRouter.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email: email });
+
+    if (!user) {
+      throw new Error("Invalid credentials");
+    }
+
+    const isPasswordCorrect = user.validatePassword(password);
+
+    if (!isPasswordCorrect) {
+      throw new Error("Invalid credentials");
+    }
+
+    // Creating jwt token
+    const token = await user.getJWT();
+    console.log(token);
+
+    res.cookie("token", token, {
+      expires: new Date(Date.now() + 8 * 3600000),
+    });
+    res.send("Login successful.");
+  } catch (error) {
+    res.status(400).send("ERROR : " + error.message);
+  }
+});
+
+module.exports = authRouter;
