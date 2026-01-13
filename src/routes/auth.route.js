@@ -23,7 +23,18 @@ authRouter.post("/signup", async (req, res) => {
     });
 
     await user.save();
-    res.send("User saved successfully!!!");
+
+    // Creating jwt token
+    const token = await user.getJWT();
+
+    res.cookie("token", token, {
+      expires: new Date(Date.now() + 8 * 3600000),
+    });
+
+    res.json({
+      message: "SignUp successful!!",
+      data: user,
+    });
   } catch (error) {
     res.status(400).send("ERROR : " + error.message);
   }
@@ -51,9 +62,12 @@ authRouter.post("/login", async (req, res) => {
     res.cookie("token", token, {
       expires: new Date(Date.now() + 8 * 3600000),
     });
-    res.send("Login successful.");
+    res.json({
+      message: "Login successful!!",
+      data: user,
+    });
   } catch (error) {
-    res.status(400).send("ERROR : " + error.message);
+    res.status(400).json({ message: "ERROR : " + error.message });
   }
 });
 
