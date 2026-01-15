@@ -1,10 +1,11 @@
 const express = require("express");
+const connectDB = require("./config/database.js");
+const app = express();
+
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const connectDB = require("./config/database.js");
 require("dotenv").config();
-
-const app = express();
+require("./utils/cronjob.js");
 
 app.use(
   cors({
