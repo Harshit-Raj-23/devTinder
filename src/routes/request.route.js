@@ -1,8 +1,11 @@
 const express = require("express");
+const requestRouter = express.Router();
+
 const { userAuth } = require("../middlewares/auth.middleware.js");
 const User = require("../models/user.model.js");
 const ConnectionRequest = require("../models/connectionRequest.model.js");
-const requestRouter = express.Router();
+
+const sendEmail = require("../utils/sendEmail.js");
 
 requestRouter.post(
   "/request/send/:status/:userId",
@@ -46,6 +49,12 @@ requestRouter.post(
 
       if (status === "interested") {
         message = `${req.user.firstName} is ${status} in ${toUser.firstName}`;
+        // If interested then send email to requested user.
+        const emailRes = await sendEmail.run(
+          toUser.email,
+          `A new connection request from ${req.user.firstName}!`,
+          message
+        );
       } else {
         message = `${req.user.firstName} ${status} ${toUser.firstName}`;
       }
@@ -88,6 +97,14 @@ requestRouter.post(
       const data = await connectionRequest.save();
 
       const fromUser = await User.findById(connectionRequest.fromUserId);
+      if (status === "accepted") {
+        const emailRes = await sendEmail.run(
+          fromUser.email,
+          `Connection request accepted!`,
+          `${loggedInUser.firstName} accepted ${fromUser.firstName}'s connection request.`
+        );
+      }
+
       res.json({
         message: `${loggedInUser.firstName} ${status} ${fromUser.firstName}'s connection request.`,
         data,
