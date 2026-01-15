@@ -51,9 +51,9 @@ requestRouter.post(
         message = `${req.user.firstName} is ${status} in ${toUser.firstName}`;
         // If interested then send email to requested user.
         const emailRes = await sendEmail.run(
-          toUser.email,
           `A new connection request from ${req.user.firstName}!`,
-          message
+          message,
+          toUser.email
         );
       } else {
         message = `${req.user.firstName} ${status} ${toUser.firstName}`;
@@ -99,9 +99,9 @@ requestRouter.post(
       const fromUser = await User.findById(connectionRequest.fromUserId);
       if (status === "accepted") {
         const emailRes = await sendEmail.run(
-          fromUser.email,
           `Connection request accepted!`,
-          `${loggedInUser.firstName} accepted ${fromUser.firstName}'s connection request.`
+          `${loggedInUser.firstName} accepted ${fromUser.firstName}'s connection request.`,
+          fromUser.email
         );
       }
 
